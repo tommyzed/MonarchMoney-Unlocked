@@ -15,6 +15,9 @@ When you open a transaction, the extension scans the Notes field for URLs and in
 - ✅ Updates live as you type in the Notes field
 - ✅ Shows nothing if Notes contains no URLs
 
+## Demo
+<img width="675" height="382" alt="Screenshot 2026-03-05 at 10 18 30 AM" src="https://github.com/user-attachments/assets/a282687a-62d1-4aa9-80d5-2c7b7ade0daa" />
+
 ## How It Works
 
 ```
