@@ -2,13 +2,15 @@
   "manifest_version": 3,
   "name": "MonarchMoney Plus",
   "version": "2.0",
-  "description": "Makes URLs in Monarch Money transaction Notes clickable by injecting a Links section. Also auto-selects 'Year to date' on the dashboard.",
+  "description": "Clickable URLs in transaction notes and automatic dashboard date-range selection for Monarch Money.",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "permissions": ["storage"],
+  "permissions": [
+    "storage"
+  ],
   "action": {
     "default_popup": "popup.html"
   },
