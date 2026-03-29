@@ -21,8 +21,41 @@ body {
   font-size: 16px;
   font-weight: 700;
   color: #39d353;
-  margin-bottom: 18px;
+  margin-bottom: 2px;
   letter-spacing: 0.02em;
+}
+
+.popup-byline {
+  font-size: 11px;
+  color: #8b949e;
+  margin-bottom: 16px;
+}
+
+.popup-byline a {
+  color: #58a6ff;
+  text-decoration: none;
+}
+
+.popup-byline a:hover {
+  color: #c9d1d9;
+  text-decoration: underline;
+}
+
+.coffee-btn {
+  display: inline-block;
+  background: #f86713;
+  border-radius: 50%;
+  padding: 2px 5px;
+  font-size: 10px;
+  line-height: 1.4;
+  text-decoration: none !important;
+  margin-left: 4px;
+  vertical-align: middle;
+  transition: background 0.2s ease;
+}
+
+.coffee-btn:hover {
+  background: #fa8542;
 }
 
 /* --- Setting groups --- */
