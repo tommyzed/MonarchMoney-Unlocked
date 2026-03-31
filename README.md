@@ -1,4 +1,4 @@
-# MonarchMoney Plus
+# Monarch Money: Unlocked
 <img width="128" height="128" alt="icon128" src="https://github.com/user-attachments/assets/9ddab607-953a-40e1-b3de-08eb9fa9f92e" />
 
 A Chrome Extension that enhances [Monarch Money](https://app.monarch.com) with clickable links in transaction Notes and automatic dashboard timeframe selection.
@@ -73,7 +73,7 @@ Load settings from chrome.storage.sync
 2. Open Chrome and navigate to `chrome://extensions/`
 3. Enable **Developer mode** using the toggle in the top-right corner.
 4. Click **Load unpacked**.
-5. Select the `MonarchMoney-Links` folder.
+5. Select the `MM-Unlocked` folder.
 6. The extension is now active — navigate to any Monarch Money page to use it.
 7. (Optional) Click the extension icon to configure settings.
 
