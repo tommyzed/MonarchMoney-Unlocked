@@ -34,6 +34,17 @@ Click the extension icon in the Chrome toolbar to configure:
 
 Settings are saved via `chrome.storage.sync` and take effect immediately — no page reload required.
 
+## 🔒 Privacy
+
+**This extension never collects, transmits, or stores any of your financial data.**
+
+- It runs entirely inside your browser — no external servers, no network requests of its own.
+- It only reads the page to locate the Notes `<textarea>` and the dashboard date-range dropdown.
+- The only data it persists is your own settings preferences (toggle states and chosen timeframe), stored locally via `chrome.storage.sync`.
+- It has no analytics, no tracking, and no third-party dependencies.
+
+You can verify this yourself: the entire source is in `content.js` (page logic) and `popup.js` (settings), both plain JavaScript with no obfuscation.
+
 ## Demo
 Settings:
 

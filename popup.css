@@ -171,3 +171,19 @@ select:focus {
   opacity: 0.35;
   pointer-events: none;
 }
+
+/* --- Privacy notice --- */
+
+.privacy-note {
+  font-size: 10.5px;
+  color: #8b949e;
+  line-height: 1.5;
+  background: rgba(57, 211, 83, 0.06);
+  border: 1px solid rgba(57, 211, 83, 0.15);
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.privacy-note strong {
+  color: #c9d1d9;
+}
