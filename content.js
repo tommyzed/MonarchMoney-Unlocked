@@ -230,7 +230,7 @@ setInterval(() => {
 const LINKS_SECTION_ID = 'mm-links-section';
 const URL_REGEX = /https?:\/\/[^\s<>"']+/g;
 
-const DRAWER_PREFIX = 'SideDrawer';
+const DRAWER_PREFIX = 'TransactionDrawer';
 
 function extractUrls(text) {
   return text.match(URL_REGEX) || [];
@@ -310,21 +310,13 @@ function attachNotesLinks(textarea) {
 function onDrawerOpened(drawerEl) {
   if (!settings.linksEnabled) return;
 
-  // Fast path: textarea already in the DOM (e.g. re-opened drawer)
-  const immediate = drawerEl.querySelector('textarea[name="notes"], textarea[id^="notes-"]');
-  if (immediate) {
-    debugLog('Textarea found immediately in drawer');
-    attachNotesLinks(immediate);
-    return;
-  }
-
-  // Slow path: wait for React to render the textarea inside the drawer
-  debugLog('Textarea not yet rendered — observing drawer for it...');
+  // Wait for React to render the textarea inside the drawer.
+  debugLog('Textarea not yet rendered. Attaching observing to watch for it.');
   const inner = new MutationObserver(() => {
     const textarea = drawerEl.querySelector('textarea[name="notes"], textarea[id^="notes-"]');
     if (!textarea) return;
     inner.disconnect();
-    debugLog('Textarea appeared in drawer');
+    debugLog('Textarea appeared in drawer. Detached observer.');
     attachNotesLinks(textarea);
   });
   inner.observe(drawerEl, { childList: true, subtree: true });
