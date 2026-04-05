@@ -230,14 +230,10 @@ setInterval(() => {
 const LINKS_SECTION_ID = 'mm-links-section';
 const URL_REGEX = /https?:\/\/[^\s<>"']+/g;
 
-let debounceTimer = null;
+const DRAWER_PREFIX = 'SideDrawer';
 
 function extractUrls(text) {
   return text.match(URL_REGEX) || [];
-}
-
-function findNotesTextarea() {
-  return document.querySelector('textarea[name="notes"], textarea[id^="notes-"]');
 }
 
 function findNotesOuterWrapper(textarea) {
@@ -283,48 +279,73 @@ function injectLinksSection(notesWrapper, urls) {
 }
 
 /**
- * Main logic: find the Notes textarea, extract URLs, and inject/update links.
+ * Wires up the Links feature for a found textarea inside the drawer.
  */
-function processNotes() {
-  if (!settings.linksEnabled) {
-    // Feature disabled — remove any lingering Links section
-    const existing = document.getElementById(LINKS_SECTION_ID);
-    if (existing) existing.remove();
-    return;
-  }
-
-  const textarea = findNotesTextarea();
-
-  if (!textarea) {
-    const existing = document.getElementById(LINKS_SECTION_ID);
-    if (existing) existing.remove();
-    return;
-  }
-
-  const urls = extractUrls(textarea.value);
+function attachNotesLinks(textarea) {
   const notesWrapper = findNotesOuterWrapper(textarea);
+  if (!notesWrapper) {
+    debugLog('No notes wrapper found in drawer');
+    return;
+  }
 
-  if (!notesWrapper) return;
+  // Inject links for whatever is already in the textarea
+  injectLinksSection(notesWrapper, extractUrls(textarea.value));
 
-  injectLinksSection(notesWrapper, urls);
-
+  // Keep links in sync as the user types
   if (!textarea.dataset.mmLinksAttached) {
     textarea.dataset.mmLinksAttached = 'true';
     textarea.addEventListener('input', () => {
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        if (!settings.linksEnabled) return;
-        const latestUrls = extractUrls(textarea.value);
-        const wrapper = findNotesOuterWrapper(textarea);
-        if (wrapper) injectLinksSection(wrapper, latestUrls);
-      }, 300);
+      if (!settings.linksEnabled) return;
+      const wrapper = findNotesOuterWrapper(textarea);
+      if (wrapper) injectLinksSection(wrapper, extractUrls(textarea.value));
     });
   }
 }
 
-function onMutation() {
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(processNotes, 200);
+/**
+ * Called when a TransactionDrawer node is added to the DOM.
+ * React renders the drawer shell first, then its children asynchronously,
+ * so we observe the drawer itself until the textarea appears, then detach.
+ */
+function onDrawerOpened(drawerEl) {
+  if (!settings.linksEnabled) return;
+
+  // Fast path: textarea already in the DOM (e.g. re-opened drawer)
+  const immediate = drawerEl.querySelector('textarea[name="notes"], textarea[id^="notes-"]');
+  if (immediate) {
+    debugLog('Textarea found immediately in drawer');
+    attachNotesLinks(immediate);
+    return;
+  }
+
+  // Slow path: wait for React to render the textarea inside the drawer
+  debugLog('Textarea not yet rendered — observing drawer for it...');
+  const inner = new MutationObserver(() => {
+    const textarea = drawerEl.querySelector('textarea[name="notes"], textarea[id^="notes-"]');
+    if (!textarea) return;
+    inner.disconnect();
+    debugLog('Textarea appeared in drawer');
+    attachNotesLinks(textarea);
+  });
+  inner.observe(drawerEl, { childList: true, subtree: true });
+}
+
+/**
+ * Called when a TransactionDrawer node is removed from the DOM.
+ * Cleans up any injected Links section.
+ */
+function onDrawerClosed() {
+  const existing = document.getElementById(LINKS_SECTION_ID);
+  if (existing) existing.remove();
+  debugLog('TransactionDrawer removed — links section cleaned up');
+}
+
+/**
+ * Returns true if the element's class list contains a class starting with the
+ * TransactionDrawer prefix.
+ */
+function hasDrawerClass(el) {
+  return Array.from(el.classList).some(c => c.startsWith(DRAWER_PREFIX));
 }
 
 // ---------------------------------------------------------------------------
@@ -337,8 +358,25 @@ loadSettings(() => {
     tryAutoSelectDropdown();
   }
 
-  // Start the Links feature observer
-  const observer = new MutationObserver(onMutation);
-  observer.observe(document.body, { childList: true, subtree: true });
-  processNotes();
+  // Targeted observer: only fires when direct children of <body> change.
+  // We filter specifically for TransactionDrawer nodes being added or removed,
+  // avoiding the overhead of a subtree:true observer that fires on every
+  // React re-render anywhere on the page.
+  const observer = new MutationObserver(mutations => {
+    for (const m of mutations) {
+      for (const node of m.removedNodes) {
+        if (node.nodeType !== Node.ELEMENT_NODE) continue;
+        if (!hasDrawerClass(node)) continue;
+        onDrawerClosed();
+      }
+      for (const node of m.addedNodes) {
+        if (node.nodeType !== Node.ELEMENT_NODE) continue;
+        if (!hasDrawerClass(node)) continue;
+        debugLog('TransactionDrawer added:', node.className);
+        onDrawerOpened(node);
+      }
+    }
+  });
+
+  observer.observe(document.body, { childList: true, subtree: false });
 });
