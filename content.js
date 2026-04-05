@@ -13,7 +13,7 @@
 // ---------------------------------------------------------------------------
 
 function isDebugEnabled() {
-  return new URLSearchParams(window.location.search).get('v') === '1';
+  return settings.debugEnabled;
 }
 
 // ---------------------------------------------------------------------------
@@ -24,6 +24,7 @@ const SETTING_DEFAULTS = {
   linksEnabled: true,
   timeframeEnabled: true,
   timeframeValue: 'Year to date',
+  debugEnabled: false,
 };
 
 let settings = { ...SETTING_DEFAULTS };

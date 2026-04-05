@@ -9,12 +9,14 @@ const DEFAULTS = {
   linksEnabled: true,
   timeframeEnabled: true,
   timeframeValue: 'Year to date',
+  debugEnabled: false,
 };
 
 const $links = document.getElementById('linksEnabled');
 const $timeframe = document.getElementById('timeframeEnabled');
 const $timeframeValue = document.getElementById('timeframeValue');
 const $timeframeGroup = document.getElementById('timeframeSelectGroup');
+const $debug = document.getElementById('debugEnabled');
 
 /** Sync the disabled visual state of the timeframe dropdown sub-setting. */
 function updateTimeframeGroupState() {
@@ -31,6 +33,7 @@ function save() {
     linksEnabled: $links.checked,
     timeframeEnabled: $timeframe.checked,
     timeframeValue: $timeframeValue.value,
+    debugEnabled: $debug.checked,
   };
   chrome.storage.sync.set(settings);
 }
@@ -40,6 +43,7 @@ chrome.storage.sync.get(DEFAULTS, (settings) => {
   $links.checked = settings.linksEnabled;
   $timeframe.checked = settings.timeframeEnabled;
   $timeframeValue.value = settings.timeframeValue;
+  $debug.checked = settings.debugEnabled;
   updateTimeframeGroupState();
 });
 
@@ -50,6 +54,7 @@ $timeframe.addEventListener('change', () => {
   save();
 });
 $timeframeValue.addEventListener('change', save);
+$debug.addEventListener('change', save);
 
 // Display version number
 const manifestData = chrome.runtime.getManifest();
