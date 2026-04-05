@@ -16,6 +16,7 @@ When you open a transaction, the extension scans the Notes field for URLs and in
 
 - ✅ Updates live as you type in the Notes field
 - ✅ Shows nothing if Notes contains no URLs
+- ✅ Cleans up automatically when the transaction drawer is closed
 
 ### 📅 Auto-Select Dashboard Timeframe
 
@@ -34,6 +35,7 @@ Click the extension icon in the Chrome toolbar to configure:
 | **Links in Notes** | Enable/disable the clickable links feature | Enabled |
 | **Auto-Select Timeframe** | Enable/disable the dashboard timeframe auto-select | Enabled |
 | **Default Timeframe** | Choose from: 1 month, 3 months, 6 months, Year to date, 1 year, All time | Year to date |
+| **Debug?** | Enable/disable console logging for troubleshooting | Disabled |
 
 Settings are saved via `chrome.storage.sync` and take effect immediately — no page reload required.
 
@@ -66,11 +68,19 @@ Load settings from chrome.storage.sync
         │
         ├── Links feature enabled?
         │       │
-        │       └── Yes → MutationObserver watches for Notes <textarea>
+        │       └── Yes → MutationObserver watches direct <body> children
         │                       │
-        │                       ▼
-        │               URLs found? → Inject "Links" section above Notes
-        │                               (updates live as you type)
+        │                       ├── TransactionDrawer added?
+        │                       │       │
+        │                       │       └── Wait for React to render textarea
+        │                       │               │
+        │                       │               ▼
+        │                       │       URLs found? → Inject "Links" section
+        │                       │                       (updates live as you type)
+        │                       │
+        │                       └── TransactionDrawer removed?
+        │                               │
+        │                               └── Remove "Links" section (cleanup)
         │
         └── Timeframe feature enabled?
                 │
@@ -119,5 +129,6 @@ Load settings from chrome.storage.sync
 ## Notes
 
 - Monarch Money uses dynamically generated CSS class names that can change between app deploys. The Links feature avoids relying on these — instead, it navigates the DOM structurally (walking up from the `<textarea>`) to find the correct injection point.
+- The transaction drawer is detected by watching for elements with a class name starting with `TransactionDrawer` being added/removed as direct children of `<body>`. Because React mounts the drawer shell before rendering its children, a short-lived inner observer waits for the `<textarea>` to appear inside the drawer, then immediately disconnects. This keeps the observer footprint minimal and avoids firing on every React re-render on the page.
 - The timeframe feature uses `react-select` class names and `role="menuitem"` to interact with the dropdown. If Monarch significantly changes the dropdown component, a small update to the selectors in `content.js` may be needed.
 - SPA navigation is detected via URL polling (every 500ms) as a reliable fallback, with `history.pushState`/`replaceState` patches as a fast-path.
