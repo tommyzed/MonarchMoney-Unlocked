@@ -7,12 +7,14 @@
 
 const DEFAULTS = {
   linksEnabled: true,
+  allTransactionsEnabled: true,
   timeframeEnabled: true,
   timeframeValue: 'Year to date',
   debugEnabled: false,
 };
 
 const $links = document.getElementById('linksEnabled');
+const $allTransactions = document.getElementById('allTransactionsEnabled');
 const $timeframe = document.getElementById('timeframeEnabled');
 const $timeframeValue = document.getElementById('timeframeValue');
 const $timeframeGroup = document.getElementById('timeframeSelectGroup');
@@ -31,6 +33,7 @@ function updateTimeframeGroupState() {
 function save() {
   const settings = {
     linksEnabled: $links.checked,
+    allTransactionsEnabled: $allTransactions.checked,
     timeframeEnabled: $timeframe.checked,
     timeframeValue: $timeframeValue.value,
     debugEnabled: $debug.checked,
@@ -41,6 +44,7 @@ function save() {
 // Load saved settings and populate UI
 chrome.storage.sync.get(DEFAULTS, (settings) => {
   $links.checked = settings.linksEnabled;
+  $allTransactions.checked = settings.allTransactionsEnabled;
   $timeframe.checked = settings.timeframeEnabled;
   $timeframeValue.value = settings.timeframeValue;
   $debug.checked = settings.debugEnabled;
@@ -49,6 +53,7 @@ chrome.storage.sync.get(DEFAULTS, (settings) => {
 
 // Wire up change listeners
 $links.addEventListener('change', save);
+$allTransactions.addEventListener('change', save);
 $timeframe.addEventListener('change', () => {
   updateTimeframeGroupState();
   save();

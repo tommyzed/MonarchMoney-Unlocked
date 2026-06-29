@@ -26,6 +26,14 @@ The dashboard date-range dropdown defaults to a short window (e.g. "1 month"). T
 - ✅ Waits for the dropdown to become interactive before selecting
 - ✅ Default: **Year to date** (configurable via the extension popup)
 
+### 👁️ All Transactions Visibility
+
+Automatically redirects and ensures that when you view Monarch transaction lists, it shows all transactions by appending `transactionVisibility=all_transactions` to the URL query parameters.
+
+- ✅ Intercepts direct URL navigations (bookmarks, typing in address bar) via a background service worker
+- ✅ Modifies link URLs on hover/click client-side to ensure seamless navigation in the Single Page App (SPA) without reloading
+- ✅ Default: **Enabled** (configurable via the extension popup)
+
 ### ⚙️ Settings Popup
 
 Click the extension icon in the Chrome toolbar to configure:
@@ -33,6 +41,7 @@ Click the extension icon in the Chrome toolbar to configure:
 | Setting | Description | Default |
 |---|---|---|
 | **Links in Notes** | Enable/disable the clickable links feature | Enabled |
+| **Default to All Transactions** | Enable/disable the transaction visibility parameter redirection | Enabled |
 | **Auto-Select Timeframe** | Enable/disable the dashboard timeframe auto-select | Enabled |
 | **Default Timeframe** | Choose from: 1 month, 3 months, 6 months, Year to date, 1 year, All time | Year to date |
 | **Debug?** | Enable/disable console logging for troubleshooting | Disabled |
@@ -126,7 +135,8 @@ BEST: https://chromewebstore.google.com/detail/monarchmoney-plus/doganjddfcohdon
 | File | Purpose |
 |---|---|
 | `manifest.json` | Extension manifest (Manifest V3), scoped to `app.monarch.com` |
-| `content.js` | Core logic — Links injection, timeframe auto-select, SPA navigation detection |
+| `background.js` | Service worker background script for intercepting direct navigations |
+| `content.js` | Core logic — Links injection, timeframe auto-select, SPA link rewriting, and SPA navigation detection |
 | `styles.css` | Dark-mode styles for the injected Links section |
 | `popup.html` | Settings popup UI |
 | `popup.css` | Dark-mode styles for the settings popup |

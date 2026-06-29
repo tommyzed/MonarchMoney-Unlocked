@@ -22,6 +22,7 @@ function isDebugEnabled() {
 
 const SETTING_DEFAULTS = {
   linksEnabled: true,
+  allTransactionsEnabled: true,
   timeframeEnabled: true,
   timeframeValue: 'Year to date',
   debugEnabled: false,
@@ -182,6 +183,75 @@ function tryAutoSelectDropdown(attempt = 0, maxAttempts = 20, retryDelayMs = 500
 }
 
 // ---------------------------------------------------------------------------
+// Feature: All Transactions Visibility
+// ---------------------------------------------------------------------------
+
+/**
+ * Checks if the current URL is /transactions and automatically appends
+ * the transactionVisibility=all_transactions parameter if missing.
+ */
+function checkAllTransactionsRedirect() {
+  if (!settings.allTransactionsEnabled) return;
+
+  if (window.location.pathname === '/transactions') {
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has('transactionVisibility')) {
+      url.searchParams.set('transactionVisibility', 'all_transactions');
+      debugLog('Redirecting to include transactionVisibility parameter:', url.toString());
+      window.location.replace(url.toString());
+    }
+  }
+}
+
+/**
+ * Modifies a single link element's href if it points to the transactions page
+ * without the transactionVisibility query param.
+ */
+function modifyLink(link) {
+  if (!settings.allTransactionsEnabled) return;
+  if (!link || !link.href) return;
+
+  try {
+    const url = new URL(link.href, window.location.origin);
+    if (url.pathname === '/transactions' && !url.searchParams.has('transactionVisibility')) {
+      url.searchParams.set('transactionVisibility', 'all_transactions');
+      link.href = url.toString();
+      debugLog('Updated link href to:', link.href);
+    }
+  } catch (e) {
+    // Skip invalid URLs
+  }
+}
+
+/**
+ * Event listener for mouseover (delegated) to modify links on hover.
+ */
+function handleLinkHover(e) {
+  const link = e.target.closest('a');
+  if (link) {
+    modifyLink(link);
+  }
+}
+
+/**
+ * Event listener for click (delegated) in capturing phase to intercept clicks.
+ */
+function handleLinkClick(e) {
+  const link = e.target.closest('a');
+  if (link) {
+    modifyLink(link);
+  }
+}
+
+/**
+ * Set up listeners for hover/click link modification.
+ */
+function setupLinkVisibilityInterceptors() {
+  document.addEventListener('mouseover', handleLinkHover);
+  document.addEventListener('click', handleLinkClick, true);
+}
+
+// ---------------------------------------------------------------------------
 // SPA navigation detection
 // ---------------------------------------------------------------------------
 
@@ -193,6 +263,7 @@ function onSpaNavigate() {
     dropdownSelected = false;
     tryAutoSelectDropdown();
   }
+  checkAllTransactionsRedirect();
 }
 
 // Patch pushState and replaceState
@@ -345,6 +416,12 @@ function hasDrawerClass(el) {
 // ---------------------------------------------------------------------------
 
 loadSettings(() => {
+  // Check redirect on startup
+  checkAllTransactionsRedirect();
+
+  // Set up hover/click URL rewrite interceptors
+  setupLinkVisibilityInterceptors();
+
   // Start the timeframe auto-select if on dashboard
   if (isDashboard() && settings.timeframeEnabled) {
     tryAutoSelectDropdown();
