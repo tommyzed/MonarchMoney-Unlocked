@@ -142,43 +142,48 @@ function selectTimeframe(singleValue) {
   return true;
 }
 
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
 /**
  * Attempts to auto-select the target dropdown value.
  * Retries up to maxAttempts times with retryDelayMs between attempts.
  */
-function tryAutoSelectDropdown(attempt = 0, maxAttempts = 20, retryDelayMs = 500) {
-  if (dropdownSelected) return;
-  if (!isDashboard()) return;
-  if (!settings.timeframeEnabled) return;
+async function tryAutoSelectDropdown(maxAttempts = 20, retryDelayMs = 500) {
+  for (let attempt = 0; attempt <= maxAttempts; attempt++) {
+    if (dropdownSelected) return;
+    if (!isDashboard()) return;
+    if (!settings.timeframeEnabled) return;
 
-  const singleValue = findSelectSingleValue();
+    const singleValue = findSelectSingleValue();
 
-  if (singleValue) {
-    const currentLabel = singleValue.textContent.trim();
-    if (currentLabel === settings.timeframeValue) {
-      // Already correct — nothing to do
-      dropdownSelected = true;
-      return;
-    }
-
-    // Check if the control is still disabled (happens on initial page load)
-    const control = singleValue.closest('.react-select__control');
-    const isDisabled = control && control.classList.contains('react-select__control--is-disabled');
-    if (isDisabled) {
-      if (attempt < maxAttempts) {
-        setTimeout(() => tryAutoSelectDropdown(attempt + 1, maxAttempts, retryDelayMs), retryDelayMs);
+    if (singleValue) {
+      const currentLabel = singleValue.textContent.trim();
+      if (currentLabel === settings.timeframeValue) {
+        // Already correct — nothing to do
+        dropdownSelected = true;
+        return;
       }
+
+      // Check if the control is still disabled (happens on initial page load)
+      const control = singleValue.closest('.react-select__control');
+      const isDisabled = control && control.classList.contains('react-select__control--is-disabled');
+      if (isDisabled) {
+        if (attempt < maxAttempts) {
+          await sleep(retryDelayMs);
+          continue;
+        }
+        return;
+      }
+
+      // Attempt the selection
+      selectTimeframe(singleValue);
       return;
     }
 
-    // Attempt the selection
-    selectTimeframe(singleValue);
-    return;
-  }
-
-  // Dropdown not rendered yet — retry
-  if (attempt < maxAttempts) {
-    setTimeout(() => tryAutoSelectDropdown(attempt + 1, maxAttempts, retryDelayMs), retryDelayMs);
+    // Dropdown not rendered yet — retry
+    if (attempt < maxAttempts) {
+      await sleep(retryDelayMs);
+    }
   }
 }
 
