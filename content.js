@@ -9,14 +9,6 @@
  */
 
 // ---------------------------------------------------------------------------
-// Debug flag — enabled via URL parameter ?v=1
-// ---------------------------------------------------------------------------
-
-function isDebugEnabled() {
-  return settings.debugEnabled;
-}
-
-// ---------------------------------------------------------------------------
 // Settings (loaded from chrome.storage.sync, with defaults)
 // ---------------------------------------------------------------------------
 
@@ -34,7 +26,7 @@ let settings = { ...SETTING_DEFAULTS };
  * Logs to the console only when debugging is enabled via URL.
  */
 function debugLog(...args) {
-  if (isDebugEnabled()) console.log('[MM-🔓]', ...args);
+  if (settings.debugEnabled) console.log('[MM-🔓]', ...args);
 }
 
 /**
