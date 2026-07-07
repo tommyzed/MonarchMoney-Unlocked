@@ -408,7 +408,10 @@ function onDrawerClosed() {
  * TransactionDrawer prefix.
  */
 function hasDrawerClass(el) {
-  return Array.from(el.classList).some(c => c.startsWith(DRAWER_PREFIX));
+  for (let i = 0; i < el.classList.length; i++) {
+    if (el.classList[i].startsWith(DRAWER_PREFIX)) return true;
+  }
+  return false;
 }
 
 // ---------------------------------------------------------------------------
