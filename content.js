@@ -122,7 +122,9 @@ function selectTimeframe(singleValue) {
           return;
         }
       }
-      debugLog('Target option not found. Labels:', [...options].map(o => o.textContent.trim()));
+      if (isDebugEnabled()) {
+        debugLog('Target option not found. Labels:', [...options].map(o => o.textContent.trim()));
+      }
       document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     } else if (pollCount >= maxPolls) {
       clearInterval(pollInterval);
