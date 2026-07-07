@@ -51,7 +51,9 @@ function loadSettings(callback) {
 // React to live setting changes (from the popup) without requiring a reload
 chrome.storage.onChanged.addListener((changes) => {
   for (const key of Object.keys(changes)) {
-    settings[key] = changes[key].newValue;
+    if (Object.prototype.hasOwnProperty.call(SETTING_DEFAULTS, key)) {
+      settings[key] = changes[key].newValue;
+    }
   }
   debugLog('Settings updated live:', settings);
 
