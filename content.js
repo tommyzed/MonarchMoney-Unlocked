@@ -87,26 +87,11 @@ function findSelectSingleValue() {
 }
 
 /**
- * Clicks the react-select control to open the dropdown menu, then waits for
- * the menu to appear and clicks the target option.
- * @param {HTMLElement} singleValue - the .react-select__single-value element
+ * Polls for the react-select menu options to render, then clicks the target option.
+ * @param {HTMLElement} container - the react-select container element
+ * @param {string} targetLabel - the label of the option to click
  */
-function selectTimeframe(singleValue) {
-  const targetLabel = settings.timeframeValue;
-  debugLog('selectTimeframe called, target:', targetLabel);
-
-  // Walk up from the single-value to get the correct control for THIS dropdown
-  const control = singleValue.closest('.react-select__control');
-  if (!control) return false;
-
-  // The react-select container (one level above the control) is used to scope
-  // option lookups so we don't accidentally hit another dropdown's menu.
-  const container = control.parentElement;
-
-  // Open the menu
-  control.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
-
-  // Poll every 100ms (up to 2s) for the menu and options to render.
+function pollForOptionsAndSelect(container, targetLabel) {
   let pollCount = 0;
   const maxPolls = 20;
   const pollInterval = setInterval(() => {
@@ -138,6 +123,30 @@ function selectTimeframe(singleValue) {
       document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     }
   }, 100);
+}
+
+/**
+ * Clicks the react-select control to open the dropdown menu, then waits for
+ * the menu to appear and clicks the target option.
+ * @param {HTMLElement} singleValue - the .react-select__single-value element
+ */
+function selectTimeframe(singleValue) {
+  const targetLabel = settings.timeframeValue;
+  debugLog('selectTimeframe called, target:', targetLabel);
+
+  // Walk up from the single-value to get the correct control for THIS dropdown
+  const control = singleValue.closest('.react-select__control');
+  if (!control) return false;
+
+  // The react-select container (one level above the control) is used to scope
+  // option lookups so we don't accidentally hit another dropdown's menu.
+  const container = control.parentElement;
+
+  // Open the menu
+  control.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+
+  // Poll every 100ms (up to 2s) for the menu and options to render.
+  pollForOptionsAndSelect(container, targetLabel);
 
   return true;
 }
