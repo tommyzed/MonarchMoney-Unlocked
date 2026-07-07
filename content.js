@@ -262,22 +262,6 @@ function onSpaNavigate() {
   checkAllTransactionsRedirect();
 }
 
-// Patch pushState and replaceState
-(function patchHistory() {
-  const _push = history.pushState.bind(history);
-  const _replace = history.replaceState.bind(history);
-
-  history.pushState = function (...args) {
-    _push(...args);
-    onSpaNavigate();
-  };
-
-  history.replaceState = function (...args) {
-    _replace(...args);
-    onSpaNavigate();
-  };
-})();
-
 window.addEventListener('popstate', onSpaNavigate);
 
 // URL polling — reliable fallback for SPA navigation detection
