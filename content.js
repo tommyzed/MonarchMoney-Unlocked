@@ -359,16 +359,25 @@ function attachNotesLinks(textarea) {
     return;
   }
 
+  // Track the current URLs to prevent unnecessary DOM rebuilds
+  let currentUrls = extractUrls(textarea.value);
+
   // Inject links for whatever is already in the textarea
-  injectLinksSection(notesWrapper, extractUrls(textarea.value));
+  injectLinksSection(notesWrapper, currentUrls);
 
   // Keep links in sync as the user types
   if (!textarea.dataset.mmLinksAttached) {
     textarea.dataset.mmLinksAttached = 'true';
     textarea.addEventListener('input', () => {
       if (!settings.linksEnabled) return;
-      const wrapper = findNotesOuterWrapper(textarea);
-      if (wrapper) injectLinksSection(wrapper, extractUrls(textarea.value));
+
+      const newUrls = extractUrls(textarea.value);
+      // Only rebuild the DOM if the extracted URLs have changed
+      if ((currentUrls || []).join(',') !== (newUrls || []).join(',')) {
+        currentUrls = newUrls;
+        const wrapper = findNotesOuterWrapper(textarea);
+        if (wrapper) injectLinksSection(wrapper, currentUrls);
+      }
     });
   }
 }
