@@ -3,6 +3,8 @@
 
 A Chrome Extension that enhances [Monarch Money](https://app.monarch.com) with clickable links in transaction Notes and automatic dashboard timeframe selection.
 
+🎁 **Sign up for Monarch Money:** Use this [Monarch Money Referral Link](https://www.monarch.com/referral?r_source=copy&code=42woh1ux8n) to try Monarch Money.
+
 ## 🌍 Download the Live Version Now!
 https://chromewebstore.google.com/detail/monarchmoney-plus/doganjddfcohdonjmbnfmjjkloigcpji
 
