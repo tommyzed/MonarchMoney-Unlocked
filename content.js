@@ -215,6 +215,7 @@ function checkAllTransactionsRedirect() {
 function modifyLink(link) {
   if (!settings.allTransactionsEnabled) return;
   if (!link || !link.href) return;
+  if (!link.href.includes('/transactions')) return;
 
   try {
     const url = new URL(link.href, window.location.origin);
