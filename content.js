@@ -292,6 +292,14 @@ const URL_REGEX = /https?:\/\/[^\s<>"']+/g;
 
 const DRAWER_PREFIX = 'TransactionDrawer';
 
+function debounce(func, wait) {
+  let timeout;
+  return function(...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
+}
+
 function extractUrls(text) {
   return text.match(URL_REGEX) || [];
 }
@@ -357,7 +365,8 @@ function attachNotesLinks(textarea) {
   // Keep links in sync as the user types
   if (!textarea.dataset.mmLinksAttached) {
     textarea.dataset.mmLinksAttached = 'true';
-    textarea.addEventListener('input', () => {
+
+    const debouncedInputHandler = debounce(() => {
       if (!settings.linksEnabled) return;
 
       const newUrls = extractUrls(textarea.value);
@@ -367,7 +376,9 @@ function attachNotesLinks(textarea) {
         const wrapper = findNotesOuterWrapper(textarea);
         if (wrapper) injectLinksSection(wrapper, currentUrls);
       }
-    });
+    }, 250);
+
+    textarea.addEventListener('input', debouncedInputHandler);
   }
 }
 
