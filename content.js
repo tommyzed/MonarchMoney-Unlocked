@@ -338,6 +338,16 @@ function injectLinksSection(notesWrapper, urls) {
   parent.insertBefore(section, notesWrapper);
 }
 
+function arraysEqual(a, b) {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
 /**
  * Wires up the Links feature for a found textarea inside the drawer.
  */
@@ -362,7 +372,7 @@ function attachNotesLinks(textarea) {
 
       const newUrls = extractUrls(textarea.value);
       // Only rebuild the DOM if the extracted URLs have changed
-      if ((currentUrls || []).join(',') !== (newUrls || []).join(',')) {
+      if (!arraysEqual(currentUrls || [], newUrls || [])) {
         currentUrls = newUrls;
         const wrapper = findNotesOuterWrapper(textarea);
         if (wrapper) injectLinksSection(wrapper, currentUrls);
