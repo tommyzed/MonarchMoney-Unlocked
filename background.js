@@ -3,17 +3,36 @@
  * Intercepts direct navigations to Monarch transactions page and appends transactionVisibility=all_transactions.
  */
 
+let cachedAllTransactionsEnabled = null;
+
+// Initialize cache
+chrome.storage.sync.get({ allTransactionsEnabled: true }, (settings) => {
+  cachedAllTransactionsEnabled = settings.allTransactionsEnabled;
+});
+
+// Keep cache updated
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName === 'sync' && changes.allTransactionsEnabled) {
+    cachedAllTransactionsEnabled = changes.allTransactionsEnabled.newValue ?? true;
+  }
+});
+
 chrome.webNavigation.onBeforeNavigate.addListener(
   async function(details) {
     // Only process main frame navigations (not iframes)
     if (details.frameId !== 0) return;
     
-    // Check settings from storage
-    const settings = await new Promise((resolve) => {
-      chrome.storage.sync.get({ allTransactionsEnabled: true }, resolve);
-    });
+    // Check settings from cache or storage
+    let allTransactionsEnabled = cachedAllTransactionsEnabled;
+    if (allTransactionsEnabled === null) {
+      const settings = await new Promise((resolve) => {
+        chrome.storage.sync.get({ allTransactionsEnabled: true }, resolve);
+      });
+      allTransactionsEnabled = settings.allTransactionsEnabled;
+      cachedAllTransactionsEnabled = allTransactionsEnabled;
+    }
     
-    if (!settings.allTransactionsEnabled) return;
+    if (!allTransactionsEnabled) return;
 
     try {
       const url = new URL(details.url);
