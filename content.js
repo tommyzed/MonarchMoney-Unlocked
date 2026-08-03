@@ -218,6 +218,7 @@ function modifyLink(link) {
 
   try {
     const url = new URL(link.href, window.location.origin);
+    if (url.protocol === 'javascript:') return;
     if (url.pathname === '/transactions' && !url.searchParams.has('transactionVisibility')) {
       url.searchParams.set('transactionVisibility', 'all_transactions');
       link.href = url.toString();
