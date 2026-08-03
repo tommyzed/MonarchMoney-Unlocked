@@ -81,6 +81,27 @@ function findSelectSingleValue() {
 }
 
 /**
+ * Helper to query for react-select menu options.
+ * @param {HTMLElement} container - the react-select container element
+ * @returns {NodeList} - a list of menu item elements
+ */
+function getMenuOptions(container) {
+  const scopeRoot = container || document;
+  const menu = scopeRoot.querySelector('.react-select__menu') ||
+    document.querySelector('.react-select__menu');
+
+  const searchRoot = menu || document;
+  return searchRoot.querySelectorAll('[role="menuitem"]');
+}
+
+/**
+ * Helper to close the react-select menu by dispatching an Escape keydown event.
+ */
+function closeMenu() {
+  document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+}
+
+/**
  * Polls for the react-select menu options to render, then clicks the target option.
  * @param {HTMLElement} container - the react-select container element
  * @param {string} targetLabel - the label of the option to click
@@ -91,12 +112,7 @@ function pollForOptionsAndSelect(container, targetLabel) {
   const pollInterval = setInterval(() => {
     pollCount++;
 
-    const scopeRoot = container || document;
-    const menu = scopeRoot.querySelector('.react-select__menu') ||
-      document.querySelector('.react-select__menu');
-
-    const searchRoot = menu || document;
-    const options = searchRoot.querySelectorAll('[role="menuitem"]');
+    const options = getMenuOptions(container);
 
     if (options.length > 0) {
       clearInterval(pollInterval);
@@ -112,11 +128,11 @@ function pollForOptionsAndSelect(container, targetLabel) {
       if (isDebugEnabled()) {
         debugLog('Target option not found. Labels:', [...options].map(o => o.textContent.trim()));
       }
-      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      closeMenu();
     } else if (pollCount >= maxPolls) {
       clearInterval(pollInterval);
       debugLog('Gave up waiting for menu options, closing');
-      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      closeMenu();
     }
   }, 100);
 }
