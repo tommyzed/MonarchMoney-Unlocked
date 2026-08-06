@@ -3,42 +3,80 @@
 #mm-links-section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 16px;
-  padding-top: 16px;
+  gap: 6px;
+  margin-top: 24px;
+  margin-bottom: 0;
+  padding-top: 4px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 #mm-links-label {
-  /* Matches native field labels: Goal, Notes, Type — white, semibold, ~15px */
-  font-size: 15px;
+  /* Matches native field labels: Type, Date, Category — semibold, 14px, dark text */
+  font-size: 14px;
   font-weight: 600;
-  color: #39d353;
-  letter-spacing: 0em;
+  color: #18181b;
+  letter-spacing: normal;
+  line-height: 1.25;
+  margin: 0;
+  padding: 0 2px;
 }
 
 #mm-links-container {
-  /* Matches the Type/Notes input box: slightly lighter dark bg, subtle border */
-  background-color: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  /* Matches native inputs: white background & light gray border in light mode */
+  background-color: #ffffff;
+  border: 1px solid #e4e4e7;
   border-radius: 8px;
-  padding: 12px 16px;
+  padding: 10px 14px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 #mm-links-container a {
-  /* Monarch's own link blue, matches "View 1 transaction" color */
-  color: #4a9ee8;
+  /* Monarch's link blue, matching "View X transactions" color */
+  color: #0284c7;
   text-decoration: none;
   font-size: 14px;
   font-weight: 400;
   word-break: break-all;
-  line-height: 1.5;
+  line-height: 1.4;
   transition: color 0.15s ease;
 }
 
 #mm-links-container a:hover {
-  color: #7bbef2;
+  color: #0369a1;
   text-decoration: underline;
+}
+
+/* Dark mode theme overrides (only when Monarch explicitly applies dark theme) */
+html[data-theme="dark"] #mm-links-label,
+body[data-theme="dark"] #mm-links-label,
+body.dark #mm-links-label,
+.dark #mm-links-label {
+  color: #f4f4f5;
+}
+
+html[data-theme="dark"] #mm-links-container,
+body[data-theme="dark"] #mm-links-container,
+body.dark #mm-links-container,
+.dark #mm-links-container {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+html[data-theme="dark"] #mm-links-container a,
+body[data-theme="dark"] #mm-links-container a,
+body.dark #mm-links-container a,
+.dark #mm-links-container a {
+  color: #38bdf8;
+}
+
+html[data-theme="dark"] #mm-links-container a:hover,
+body[data-theme="dark"] #mm-links-container a:hover,
+body.dark #mm-links-container a:hover,
+.dark #mm-links-container a:hover {
+  color: #7dd3fc;
 }

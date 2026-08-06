@@ -125,7 +125,7 @@ function pollForOptionsAndSelect(container, targetLabel) {
           return;
         }
       }
-      if (isDebugEnabled()) {
+      if (settings.debugEnabled) {
         debugLog('Target option not found. Labels:', [...options].map(o => o.textContent.trim()));
       }
       closeMenu();
@@ -319,10 +319,15 @@ function debounce(func, wait) {
 }
 
 function extractUrls(text) {
-  return text.match(URL_REGEX) || [];
+  return text ? (text.match(URL_REGEX) || []) : [];
 }
 
 function findNotesOuterWrapper(textarea) {
+  if (!textarea) return null;
+  const fieldContainer = textarea.closest('[class*="field" i], [class*="Field" i], [class*="formGroup" i], [class*="FormGroup" i]');
+  if (fieldContainer && fieldContainer !== textarea) {
+    return fieldContainer;
+  }
   let el = textarea;
   for (let i = 0; i < 3; i++) {
     if (!el.parentElement) return null;
@@ -333,15 +338,27 @@ function findNotesOuterWrapper(textarea) {
 
 function injectLinksSection(notesWrapper, urls) {
   const parent = notesWrapper.parentElement;
-  if (!parent) return;
+  if (!parent) {
+    debugLog('Cannot inject links section: notesWrapper has no parent element');
+    return;
+  }
 
   const existing = document.getElementById(LINKS_SECTION_ID);
-  if (existing) existing.remove();
+  if (existing) {
+    existing.remove();
+    debugLog('Removed existing links section');
+  }
 
-  if (urls.length === 0) return;
+  if (urls.length === 0) {
+    debugLog('No URLs extracted; no links section injected');
+    return;
+  }
 
   const section = document.createElement('div');
   section.id = LINKS_SECTION_ID;
+  if (notesWrapper && notesWrapper.className) {
+    section.className = notesWrapper.className;
+  }
 
   const label = document.createElement('div');
   label.id = 'mm-links-label';
@@ -362,6 +379,7 @@ function injectLinksSection(notesWrapper, urls) {
 
   section.appendChild(linksContainer);
   parent.insertBefore(section, notesWrapper);
+  debugLog(`Successfully injected ${urls.length} link(s) into notes section:`, urls);
 }
 
 function arraysEqual(a, b) {
@@ -378,14 +396,17 @@ function arraysEqual(a, b) {
  * Wires up the Links feature for a found textarea inside the drawer.
  */
 function attachNotesLinks(textarea) {
+  debugLog('Attaching notes links to textarea:', textarea);
   const notesWrapper = findNotesOuterWrapper(textarea);
   if (!notesWrapper) {
-    debugLog('No notes wrapper found in drawer');
+    debugLog('No notes wrapper found for textarea');
     return;
   }
+  debugLog('Found notes wrapper:', notesWrapper);
 
   // Track the current URLs to prevent unnecessary DOM rebuilds
   let currentUrls = extractUrls(textarea.value);
+  debugLog('Extracted initial URLs from notes:', currentUrls);
 
   // Inject links for whatever is already in the textarea
   injectLinksSection(notesWrapper, currentUrls);
@@ -398,11 +419,15 @@ function attachNotesLinks(textarea) {
       if (!settings.linksEnabled) return;
 
       const newUrls = extractUrls(textarea.value);
+      debugLog('Debounced input triggered. Extracted URLs:', newUrls);
       // Only rebuild the DOM if the extracted URLs have changed
       if (!arraysEqual(currentUrls || [], newUrls || [])) {
         currentUrls = newUrls;
         const wrapper = findNotesOuterWrapper(textarea);
-        if (wrapper) injectLinksSection(wrapper, currentUrls);
+        if (wrapper) {
+          debugLog('Updating links section with new URLs:', currentUrls);
+          injectLinksSection(wrapper, currentUrls);
+        }
       }
     }, 250);
 
@@ -413,18 +438,30 @@ function attachNotesLinks(textarea) {
 /**
  * Called when a TransactionDrawer node is added to the DOM.
  * React renders the drawer shell first, then its children asynchronously,
- * so we observe the drawer itself until the textarea appears, then detach.
+ * so we check if the textarea is already present, or observe until it appears.
  */
 function onDrawerOpened(drawerEl) {
-  if (!settings.linksEnabled) return;
+  if (!settings.linksEnabled) {
+    debugLog('Links feature disabled in settings; skipping drawer setup.');
+    return;
+  }
 
-  // Wait for React to render the textarea inside the drawer.
-  debugLog('Textarea not yet rendered. Attaching observing to watch for it.');
+  debugLog('TransactionDrawer opened:', drawerEl);
+
+  const existingTextarea = drawerEl.querySelector('textarea[name="notes"], textarea[id^="notes-"], textarea[placeholder*="note" i]');
+  if (existingTextarea) {
+    debugLog('Textarea already rendered in drawer on open.');
+    attachNotesLinks(existingTextarea);
+    return;
+  }
+
+  // Wait for React to render the textarea inside the drawer if not already present.
+  debugLog('Textarea not yet rendered in drawer. Observing drawer for children changes.');
   const inner = new MutationObserver(() => {
-    const textarea = drawerEl.querySelector('textarea[name="notes"], textarea[id^="notes-"]');
+    const textarea = drawerEl.querySelector('textarea[name="notes"], textarea[id^="notes-"], textarea[placeholder*="note" i]');
     if (!textarea) return;
     inner.disconnect();
-    debugLog('Textarea appeared in drawer. Detached observer.');
+    debugLog('Textarea appeared in drawer via MutationObserver.');
     attachNotesLinks(textarea);
   });
   inner.observe(drawerEl, { childList: true, subtree: true });
@@ -441,14 +478,19 @@ function onDrawerClosed() {
 }
 
 /**
- * Returns true if the element's class list contains a class starting with the
- * TransactionDrawer prefix.
+ * Returns the TransactionDrawer element if node is or contains a drawer.
  */
-function hasDrawerClass(el) {
-  for (let i = 0; i < el.classList.length; i++) {
-    if (el.classList[i].startsWith(DRAWER_PREFIX)) return true;
+function getDrawerElement(node) {
+  if (!node || node.nodeType !== Node.ELEMENT_NODE) return null;
+  if (node.classList) {
+    for (let i = 0; i < node.classList.length; i++) {
+      if (node.classList[i].startsWith(DRAWER_PREFIX)) return node;
+    }
   }
-  return false;
+  if (node.querySelector) {
+    return node.querySelector('[class*="' + DRAWER_PREFIX + '"]');
+  }
+  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -467,25 +509,34 @@ loadSettings(() => {
     tryAutoSelectDropdown();
   }
 
-  // Targeted observer: only fires when direct children of <body> change.
-  // We filter specifically for TransactionDrawer nodes being added or removed,
-  // avoiding the overhead of a subtree:true observer that fires on every
-  // React re-render anywhere on the page.
+  // Observer for TransactionDrawer nodes added or removed from DOM
   const observer = new MutationObserver(mutations => {
     for (const m of mutations) {
       for (const node of m.removedNodes) {
         if (node.nodeType !== Node.ELEMENT_NODE) continue;
-        if (!hasDrawerClass(node)) continue;
-        onDrawerClosed();
+        const drawer = getDrawerElement(node);
+        if (drawer) {
+          debugLog('TransactionDrawer removed from DOM');
+          onDrawerClosed();
+        }
       }
       for (const node of m.addedNodes) {
         if (node.nodeType !== Node.ELEMENT_NODE) continue;
-        if (!hasDrawerClass(node)) continue;
-        debugLog('TransactionDrawer added:', node.className);
-        onDrawerOpened(node);
+        const drawer = getDrawerElement(node);
+        if (drawer) {
+          debugLog('TransactionDrawer added to DOM:', drawer);
+          onDrawerOpened(drawer);
+        }
       }
     }
   });
 
-  observer.observe(document.body, { childList: true, subtree: false });
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  // Initial scan in case drawer is already in DOM on script load
+  const existingDrawer = document.querySelector('[class*="' + DRAWER_PREFIX + '"]');
+  if (existingDrawer) {
+    debugLog('Existing TransactionDrawer found on initialization:', existingDrawer);
+    onDrawerOpened(existingDrawer);
+  }
 });
