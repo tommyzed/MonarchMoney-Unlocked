@@ -10,8 +10,7 @@
   },
   "permissions": [
     "storage",
-    "webNavigation",
-    "tabs"
+    "webNavigation"
   ],
   "background": {
     "service_worker": "background.js"

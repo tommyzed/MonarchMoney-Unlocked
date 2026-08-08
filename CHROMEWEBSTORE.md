@@ -43,7 +43,6 @@ English
 |------------|------|---------------|
 | `storage` | permissions | Required to save user choices for links, timeframe, and visibility redirect settings locally. |
 | `webNavigation` | permissions | Required to intercept direct navigation requests to the Monarch Money transactions page in order to append the visibility query parameter before the page loads. |
-| `tabs` | permissions | Required to update the URL of the tab when performing the transaction visibility query parameter redirection. |
 | `https://app.monarch.com/*` | host_permissions | Required to run content scripts on Monarch Money pages to rewrite URLs, read note text for link injection, and automatically select the dashboard timeframe. |
 
 ## Privacy & Data Use
@@ -61,5 +60,6 @@ English
 
 | Version | Date | Changes | Status |
 |---------|------|---------|--------|
-| 2.4.0 | 2026-06-29 | Added All Transactions Visibility toggle, merging MonarchMoney-Visibility functionality. Added background script with `webNavigation` and `tabs` permissions for robust direct-url redirection. | Draft |
+| 2.5.0 | 2026-08-08 | Removed unnecessary `tabs` permission (redirect uses `chrome.tabs.update` without needing tab property access). Several other performance enhancements. | Draft |
+| 2.4.0 | 2026-06-29 | Added All Transactions Visibility toggle, merging MonarchMoney-Visibility functionality. Added background script with `webNavigation` permission for robust direct-url redirection. | Draft |
 | 2.2.0 | 2026-06-28 | Previous release with note links extraction and timeframe auto-select. | Published |
