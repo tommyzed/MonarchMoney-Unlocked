@@ -21,6 +21,7 @@
 - **In-Memory Storage Sync Caching:** Cached `chrome.storage.sync` settings in background scripts with `chrome.storage.onChanged` synchronization to avoid synchronous storage queries on navigation.
 
 ### 🔒 Security Improvements
+- **Least Privilege Permission Hardening:** Removed unnecessary `tabs` permission from `manifest.json`, streamlining extension permissions while maintaining seamless transaction page redirection.
 - **DOM XSS Protection:** Added protocol validation to sanitize `javascript:` scheme URLs during link modification.
 
 ---
